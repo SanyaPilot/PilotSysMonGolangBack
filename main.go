@@ -11,5 +11,6 @@ func main() {
 	endpoints.CPURoutes(r)
 	endpoints.MemRoutes(r)
 	endpoints.DisksRoutes(r)
+	endpoints.OSRoutes(r)
 	r.Run()
 }
