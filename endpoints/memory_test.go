@@ -63,3 +63,18 @@ func TestMemoryHumanRoute(t *testing.T) {
 		}
 	}
 }
+
+func TestMemoryBrokenRoute(t *testing.T) {
+	r := gin.Default()
+	MemRoutes(r)
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/memory?human=xd", nil)
+	r.ServeHTTP(w, req)
+	rawBody := w.Body.String()
+	body := make(map[string]any)
+	json.Unmarshal([]byte(rawBody), &body)
+
+	if assert.Equal(t, 400, w.Code) {
+		assert.Equal(t, "error", body["status"])
+	}
+}
