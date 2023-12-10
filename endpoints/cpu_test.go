@@ -1,8 +1,7 @@
-package cpu
+package endpoints
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -85,37 +84,9 @@ func TestReadInvalidCPUInfo(t *testing.T) {
 	assert.Nil(t, res)
 }
 
-func TestAnswerError(t *testing.T) {
-	w := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(w)
-	answerGopsutilError(errors.New("TEST"), ctx)
-	res := w.Result()
-	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
-
-	rawBody := w.Body.String()
-	body := make(map[string]any)
-	json.Unmarshal([]byte(rawBody), &body)
-	assert.Equal(t, "error", body["status"])
-	assert.Equal(t, "gopsutil error: TEST", body["msg"])
-}
-
-func TestAnswerErrorNil(t *testing.T) {
-	w := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(w)
-	answerError("testing test", nil, ctx)
-	res := w.Result()
-	assert.Equal(t, res.StatusCode, http.StatusInternalServerError)
-
-	rawBody := w.Body.String()
-	body := make(map[string]any)
-	json.Unmarshal([]byte(rawBody), &body)
-	assert.Equal(t, "error", body["status"])
-	assert.Equal(t, "testing test", body["msg"])
-}
-
 func TestMainCPURoute(t *testing.T) {
 	r := gin.Default()
-	Routes(r)
+	CPURoutes(r)
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/cpu", nil)
 	r.ServeHTTP(w, req)
@@ -144,7 +115,7 @@ func TestMainCPURoute(t *testing.T) {
 
 func TestCPUInfoRoute(t *testing.T) {
 	r := gin.Default()
-	Routes(r)
+	CPURoutes(r)
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/cpu/info", nil)
 	r.ServeHTTP(w, req)

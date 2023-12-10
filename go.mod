@@ -3,7 +3,9 @@ module pilot-sysmon-backend
 go 1.21.4
 
 require (
+	github.com/dustin/go-humanize v1.0.1
 	github.com/gin-gonic/gin v1.9.1
+	github.com/go-playground/assert/v2 v2.2.0
 	github.com/shirou/gopsutil/v3 v3.23.11
 	github.com/stretchr/testify v1.8.4
 )

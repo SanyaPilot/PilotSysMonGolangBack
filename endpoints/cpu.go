@@ -1,4 +1,4 @@
-package cpu
+package endpoints
 
 import (
 	"bufio"
@@ -10,6 +10,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"pilot-sysmon-backend/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shirou/gopsutil/v3/cpu"
@@ -104,27 +106,11 @@ func readCPUInfo(cpuinfoFile string) map[string]any {
 	return res
 }
 
-func answerError(reason string, err error, ctx *gin.Context) {
-	var msg string
-	if err != nil {
-		msg = reason + err.Error()
-	} else {
-		msg = reason
-	}
-	ctx.JSON(http.StatusInternalServerError, gin.H{
-		"status": "error", "msg": msg,
-	})
-}
-
-func answerGopsutilError(err error, ctx *gin.Context) {
-	answerError("gopsutil error: ", err, ctx)
-}
-
-func Routes(router *gin.Engine) {
+func CPURoutes(router *gin.Engine) {
 	router.GET("/cpu", func(ctx *gin.Context) {
 		info, err := cpu.Info()
 		if err != nil {
-			answerGopsutilError(err, ctx)
+			utils.AnswerGopsutilError(err, ctx)
 			return
 		}
 
@@ -134,7 +120,7 @@ func Routes(router *gin.Engine) {
 		// Freq
 		freqs := getCPUFreqs(getCPUFreqPaths())
 		if freqs == nil {
-			answerError("Internal server error, sorry", nil, ctx)
+			utils.AnswerError("Internal server error, sorry", nil, ctx)
 			return
 		}
 		// Prepare current frequencies
@@ -156,7 +142,7 @@ func Routes(router *gin.Engine) {
 		// CPU percent load
 		loads, err := cpu.Percent(100000000, true)
 		if err != nil {
-			answerGopsutilError(err, ctx)
+			utils.AnswerGopsutilError(err, ctx)
 			return
 		}
 		loadSum := 0.0
@@ -168,7 +154,7 @@ func Routes(router *gin.Engine) {
 		// System overall load
 		sysLoad, err := load.Avg()
 		if err != nil {
-			answerGopsutilError(err, ctx)
+			utils.AnswerGopsutilError(err, ctx)
 			return
 		}
 
@@ -196,7 +182,7 @@ func Routes(router *gin.Engine) {
 		// Info
 		cpuInfo, err := cpu.Info()
 		if err != nil {
-			answerGopsutilError(err, ctx)
+			utils.AnswerGopsutilError(err, ctx)
 			return
 		}
 
@@ -206,13 +192,13 @@ func Routes(router *gin.Engine) {
 		// Arch
 		hostInfo, err := host.Info()
 		if err != nil {
-			answerGopsutilError(err, ctx)
+			utils.AnswerGopsutilError(err, ctx)
 			return
 		}
 
 		payload := readCPUInfo("/proc/cpuinfo")
 		if payload == nil {
-			answerError("Internal server error, sorry", nil, ctx)
+			utils.AnswerError("Internal server error, sorry", nil, ctx)
 			return
 		}
 
