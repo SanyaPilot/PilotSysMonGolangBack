@@ -23,19 +23,23 @@ type CPUFreq struct {
 	Current float32
 }
 
-func getCPUFreqPaths() []string {
+func getCPUFreqPaths(node_prefix ...string) []string {
+	prefix := "/sys/devices/system/cpu/"
+	if len(node_prefix) > 0 {
+		prefix = node_prefix[0]
+	}
 	var paths []string
-	_, err := os.Stat("/sys/devices/system/cpu/cpufreq/policy0")
+	_, err := os.Stat(prefix + "cpufreq/policy0")
 	if err == nil {
-		paths, _ = filepath.Glob("/sys/devices/system/cpu/cpufreq/policy[0-9]*")
+		paths, _ = filepath.Glob(prefix + "cpufreq/policy[0-9]*")
 	} else {
 		// Try another path
-		_, err := os.Stat("/sys/devices/system/cpu/cpu0/cpufreq")
+		_, err := os.Stat(prefix + "cpu0/cpufreq")
 		if err != nil {
 			fmt.Println("CPUFreq paths are not found. Not running on Linux?")
 			return nil
 		}
-		paths, _ = filepath.Glob("/sys/devices/system/cpu/cpu[0-9]*/cpufreq")
+		paths, _ = filepath.Glob(prefix + "cpu[0-9]*/cpufreq")
 	}
 	slices.SortFunc(paths, func(a string, b string) int {
 		pattern := regexp.MustCompile("[0-9]+")
@@ -58,8 +62,7 @@ func readCPUFreqNode(path string, node string) float32 {
 	return res
 }
 
-func getCPUFreqs() []CPUFreq {
-	paths := getCPUFreqPaths()
+func getCPUFreqs(paths []string) []CPUFreq {
 	if paths == nil {
 		return nil
 	}
@@ -74,21 +77,15 @@ func getCPUFreqs() []CPUFreq {
 	return freqs
 }
 
-func getCPUCoreCount() (int, int, error) {
+func getCPUCoreCount() (int, int) {
 	// Core count
-	logicalCount, err := cpu.Counts(true)
-	if err != nil {
-		return 0, 0, err
-	}
-	physicalCount, err := cpu.Counts(false)
-	if err != nil {
-		return 0, 0, err
-	}
-	return logicalCount, physicalCount, nil
+	logicalCount, _ := cpu.Counts(true)
+	physicalCount, _ := cpu.Counts(false)
+	return logicalCount, physicalCount
 }
 
-func readCPUInfo() map[string]any {
-	data, err := os.ReadFile("/proc/cpuinfo")
+func readCPUInfo(cpuinfoFile string) map[string]any {
+	data, err := os.ReadFile(cpuinfoFile)
 	if err != nil {
 		fmt.Println("Error while reading /proc/cpuinfo. Not running on Linux?")
 		return nil
@@ -108,7 +105,6 @@ func readCPUInfo() map[string]any {
 }
 
 func answerError(reason string, err error, ctx *gin.Context) {
-	fmt.Println("gopsutil error! " + err.Error())
 	var msg string
 	if err != nil {
 		msg = reason + err.Error()
@@ -133,14 +129,10 @@ func Routes(router *gin.Engine) {
 		}
 
 		// Core count
-		logicalCount, physicalCount, err := getCPUCoreCount()
-		if err != nil {
-			answerGopsutilError(err, ctx)
-			return
-		}
+		logicalCount, physicalCount := getCPUCoreCount()
 
 		// Freq
-		freqs := getCPUFreqs()
+		freqs := getCPUFreqs(getCPUFreqPaths())
 		if freqs == nil {
 			answerError("Internal server error, sorry", nil, ctx)
 			return
@@ -209,11 +201,7 @@ func Routes(router *gin.Engine) {
 		}
 
 		// Core count
-		logicalCount, physicalCount, err := getCPUCoreCount()
-		if err != nil {
-			answerError("Internal server error, sorry", nil, ctx)
-			return
-		}
+		logicalCount, physicalCount := getCPUCoreCount()
 
 		// Arch
 		hostInfo, err := host.Info()
@@ -222,7 +210,7 @@ func Routes(router *gin.Engine) {
 			return
 		}
 
-		payload := readCPUInfo()
+		payload := readCPUInfo("/proc/cpuinfo")
 		if payload == nil {
 			answerError("Internal server error, sorry", nil, ctx)
 			return
