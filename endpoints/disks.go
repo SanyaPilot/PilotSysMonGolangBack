@@ -15,7 +15,7 @@ type DiskParams struct {
 
 func DisksRoutes(router *gin.Engine) {
 	router.GET("/disks", func(ctx *gin.Context) {
-		var params MemParams
+		var params DiskParams
 		if err := ctx.ShouldBind(&params); err != nil {
 			ctx.JSON(400, gin.H{"status": "error", "msg": err})
 			return
