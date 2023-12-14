@@ -3,6 +3,7 @@ package endpoints
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -133,12 +134,16 @@ func CPURoutes(router *gin.Engine) {
 		avgFreq := freqSum / float32(len(freqs))
 
 		// CPU percent load
-		loads, _ := cpu.Percent(100000000, true)
+		rawLoads, _ := cpu.Percent(100000000, true)
+		loads := []float64{}
+		for _, load := range rawLoads {
+			loads = append(loads, math.Round(load*10)/10)
+		}
 		loadSum := 0.0
 		for _, l := range loads {
 			loadSum += l
 		}
-		avgLoad := loadSum / float64(len(loads))
+		avgLoad := math.Round(loadSum/float64(len(loads))*10) / 10
 
 		// System overall load
 		sysLoad, _ := load.Avg()

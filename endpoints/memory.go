@@ -22,6 +22,7 @@ func MemRoutes(router *gin.Engine) {
 		memory, _ := mem.VirtualMemory()
 		swap, _ := mem.SwapMemory()
 		memPercent := math.Round((float64(memory.Total-memory.Available) / float64(memory.Total) * 100 * 10)) / 10
+		swapPercent := math.Round(swap.UsedPercent*10) / 10
 
 		var payload gin.H
 		if params.Human {
@@ -40,7 +41,7 @@ func MemRoutes(router *gin.Engine) {
 					"slab":      humanize.Bytes(memory.Slab),
 				},
 				"swap": gin.H{
-					"percent": swap.UsedPercent,
+					"percent": swapPercent,
 					"total":   humanize.Bytes(swap.Total),
 					"used":    humanize.Bytes(swap.Used),
 					"free":    humanize.Bytes(swap.Free),
