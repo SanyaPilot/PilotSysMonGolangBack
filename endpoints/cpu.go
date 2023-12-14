@@ -108,21 +108,14 @@ func readCPUInfo(cpuinfoFile string) map[string]any {
 
 func CPURoutes(router *gin.Engine) {
 	router.GET("/cpu", func(ctx *gin.Context) {
-		info, err := cpu.Info()
-		if err != nil {
-			utils.AnswerGopsutilError(err, ctx)
-			return
-		}
+		info, _ := cpu.Info()
 
 		// Core count
 		logicalCount, physicalCount := getCPUCoreCount()
 
 		// Freq
 		freqs := getCPUFreqs(getCPUFreqPaths())
-		if freqs == nil {
-			utils.AnswerError("Internal server error, sorry", nil, ctx)
-			return
-		}
+
 		// Prepare current frequencies
 		// Count average
 		// Select maximum and minimum
@@ -140,11 +133,7 @@ func CPURoutes(router *gin.Engine) {
 		avgFreq := freqSum / float32(len(freqs))
 
 		// CPU percent load
-		loads, err := cpu.Percent(100000000, true)
-		if err != nil {
-			utils.AnswerGopsutilError(err, ctx)
-			return
-		}
+		loads, _ := cpu.Percent(100000000, true)
 		loadSum := 0.0
 		for _, l := range loads {
 			loadSum += l
@@ -152,11 +141,7 @@ func CPURoutes(router *gin.Engine) {
 		avgLoad := loadSum / float64(len(loads))
 
 		// System overall load
-		sysLoad, err := load.Avg()
-		if err != nil {
-			utils.AnswerGopsutilError(err, ctx)
-			return
-		}
+		sysLoad, _ := load.Avg()
 
 		ctx.JSON(http.StatusOK, gin.H{
 			"name": info[0].ModelName,
@@ -180,21 +165,13 @@ func CPURoutes(router *gin.Engine) {
 
 	router.GET("/cpu/info", func(ctx *gin.Context) {
 		// Info
-		cpuInfo, err := cpu.Info()
-		if err != nil {
-			utils.AnswerGopsutilError(err, ctx)
-			return
-		}
+		cpuInfo, _ := cpu.Info()
 
 		// Core count
 		logicalCount, physicalCount := getCPUCoreCount()
 
 		// Arch
-		hostInfo, err := host.Info()
-		if err != nil {
-			utils.AnswerGopsutilError(err, ctx)
-			return
-		}
+		hostInfo, _ := host.Info()
 
 		payload := readCPUInfo("/proc/cpuinfo")
 		if payload == nil {
