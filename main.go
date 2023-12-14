@@ -13,5 +13,6 @@ func main() {
 	endpoints.DisksRoutes(r)
 	endpoints.OSRoutes(r)
 	endpoints.TimeRoutes(r)
+	endpoints.LogsRoutes(r)
 	r.Run()
 }
