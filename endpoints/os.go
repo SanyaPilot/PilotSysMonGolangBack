@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"pilot-sysmon-backend/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -43,11 +42,7 @@ func getFreeDesktopInfo(filePath string) (FreeDesktopInfo, error) {
 
 func OSRoutes(router *gin.Engine) {
 	router.GET("/os", func(ctx *gin.Context) {
-		info, err := host.Info()
-		if err != nil {
-			utils.AnswerGopsutilError(err, ctx)
-			return
-		}
+		info, _ := host.Info()
 		payload := gin.H{
 			"family":  strings.ToUpper(info.OS[:1]) + info.OS[1:],
 			"version": info.PlatformVersion,
