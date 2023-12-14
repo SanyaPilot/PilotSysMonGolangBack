@@ -1,7 +1,6 @@
 package endpoints
 
 import (
-	"pilot-sysmon-backend/utils"
 	"strings"
 
 	"github.com/dustin/go-humanize"
@@ -20,18 +19,10 @@ func DisksRoutes(router *gin.Engine) {
 			ctx.JSON(400, gin.H{"status": "error", "msg": err})
 			return
 		}
-		parts, err := disk.Partitions(false)
-		if err != nil {
-			utils.AnswerGopsutilError(err, ctx)
-			return
-		}
+		parts, _ := disk.Partitions(false)
 		var payload []gin.H
 		for _, part := range parts {
-			usage, err := disk.Usage(part.Mountpoint)
-			if err != nil {
-				utils.AnswerGopsutilError(err, ctx)
-				return
-			}
+			usage, _ := disk.Usage(part.Mountpoint)
 			var usagePayload gin.H
 			if params.Human {
 				usagePayload = gin.H{
