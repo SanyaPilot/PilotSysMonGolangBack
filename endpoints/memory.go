@@ -2,7 +2,6 @@ package endpoints
 
 import (
 	"math"
-	"pilot-sysmon-backend/utils"
 
 	"github.com/dustin/go-humanize"
 	"github.com/gin-gonic/gin"
@@ -20,16 +19,8 @@ func MemRoutes(router *gin.Engine) {
 			ctx.JSON(400, gin.H{"status": "error", "msg": err})
 			return
 		}
-		memory, err := mem.VirtualMemory()
-		if err != nil {
-			utils.AnswerGopsutilError(err, ctx)
-			return
-		}
-		swap, err := mem.SwapMemory()
-		if err != nil {
-			utils.AnswerGopsutilError(err, ctx)
-			return
-		}
+		memory, _ := mem.VirtualMemory()
+		swap, _ := mem.SwapMemory()
 		memPercent := math.Round((float64(memory.Total-memory.Available) / float64(memory.Total) * 100 * 10)) / 10
 
 		var payload gin.H
