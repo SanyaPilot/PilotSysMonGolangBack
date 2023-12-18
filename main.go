@@ -16,5 +16,6 @@ func main() {
 	endpoints.OSRoutes(r)
 	endpoints.TimeRoutes(r)
 	endpoints.LogsRoutes(r)
+	endpoints.BackInfoEndpoints(r)
 	r.Run()
 }
